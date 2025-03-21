@@ -18,12 +18,13 @@ def agent_portrayal(agent):
     if isinstance(agent, Robot):
         return {
             "color": f"{agent.color}",
-            "size": 10,
+            "size": 40,
             "alpha": 1,
         }
     if isinstance(agent, Waste):
         return {
             "color": f"{agent.color}",
             "alpha": 1,
-            "size": 10,
+            "size": 20,
+            "marker": "*",
         }

@@ -14,6 +14,9 @@ class Radioactivity(Agent):
         zones = ["z1", "z2", "z3"]
         self.zone = zone
         self.radioactivity = (random() + zones.index(self.zone)) / 3
+        
+    def step_agent(self):
+        pass
 
 
 class WasteDisposalZone(Agent):
@@ -21,6 +24,9 @@ class WasteDisposalZone(Agent):
         super().__init__(model, *args, **kwargs)
         self.zone = "z3"
         self.radioactivity = (2 + random()) / 3
+        
+    def step_agent(self):
+        pass
 
 
 class Waste(Agent):
@@ -29,3 +35,6 @@ class Waste(Agent):
     ):
         super().__init__(model, *args, **kwargs)
         self.color = color
+        
+    def step_agent(self):
+        pass

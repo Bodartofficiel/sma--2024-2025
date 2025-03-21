@@ -3,7 +3,7 @@
 # Created March 11
 from random import choice, randint
 
-from agents import GreenAgent, RedAgent, YellowAgent
+from agents import GreenAgent, RedAgent, YellowAgent, Robot
 from mesa import DataCollector, Model
 from mesa.space import MultiGrid
 from objects import Radioactivity, Waste, WasteDisposalZone
@@ -51,9 +51,17 @@ class RobotMission(Model):
                 self.grid.place_agent(RedAgent(self), (x, y))
             elif agent_type == "yellow":
                 self.grid.place_agent(YellowAgent(self), (x, y))
+                
+    def move_robot(self, agent, pos):
+        assert isinstance(agent, Robot)
+        self.grid.move_agent(agent, pos)
+                
+    def get_perception(self, agent):
+        return self.grid.get_neighbors(agent.pos, moore=True, include_center=True)
 
     def do(self, agent, action):
-        pass
+        action.execute(self, agent)
 
     def step(self):
         self.agents.shuffle_do("step_agent")
+        
