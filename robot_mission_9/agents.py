@@ -32,7 +32,7 @@ class Robot(Agent):
         model,
     ):
         super().__init__(model)
-        self.knowledge = []
+        self.knowledge = {}
         self.capacity = 2
         
         self.color = None
@@ -41,6 +41,7 @@ class Robot(Agent):
         
         self.waste_in_possession = 0
         self._is_full = False
+        self.last_move = None
 
     def step_agent(self):
         percepts = self.model.get_perception(self)
@@ -49,7 +50,7 @@ class Robot(Agent):
         self.act(action)
         
     def update_knowledge(self, percepts):
-        self.knowledge.append(percepts)
+        self.knowledge["percept"] = percepts
     
     def deliberate(self):
         perception = self.knowledge[-1]
@@ -78,8 +79,8 @@ class Robot(Agent):
         
     ### behaviors ###
         
-    def when_random_move(self, knowledge):
-        accessible_cases = knowledge[-1]["pos_access"]
+    def when_random_move(self):
+        accessible_cases = self.knowledge["percept"]["pos_access"]
         return (ACTION.MOVE, choice(accessible_cases))
             
     def when_seeing_waste_behavior(self, knowledge):
@@ -108,6 +109,7 @@ class Robot(Agent):
         except Exception as e:
             print(e)
             print("Can't move to this position")
+        self.last_move = MOVEMENT((new_pos[0] - self.pos[0], new_pos[1] - self.pos[1]))
 
 
 class GreenAgent(Robot):
@@ -130,3 +132,20 @@ class RedAgent(Robot):
         self.color = "red"
         self.collectable_waste_color = "red"
         self.dropped_waste_color = "red"
+        self.capacity = 1
+        self.last_move = None
+        
+    def when_full_behavior(self):
+        assert self._is_full
+        accessible_cases = self.knowledge["perception"]["pos_access"]
+        right = compute_new_position(self.pos, MOVEMENT.RIGHT)
+        up = compute_new_position(self.pos, MOVEMENT.UP)
+        down = compute_new_position(self.pos, MOVEMENT.DOWN)
+        if len(self.perception["diposal_zone_pos"]) > 0:
+            return (ACTION.MOVE, self.perception["diposal_zone_pos"][0])
+        elif right in accessible_cases:
+            return (ACTION.MOVE, right)
+        elif up in accessible_cases and self.last_move != MOVEMENT.DOWN:
+            return (ACTION.MOVE, up)
+        elif down in accessible_cases and self.last_move != MOVEMENT.UP:
+            return (ACTION.MOVE, down)
