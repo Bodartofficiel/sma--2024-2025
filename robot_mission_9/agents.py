@@ -74,7 +74,7 @@ class GreenAgent(Robot):
     @staticmethod
     def deliberate(knowledge):
         """ form of an action : (fct, args) """
-        return [MOVE.UP]
+        return [choice(list(MOVE))]
 
 
 class YellowAgent(Robot):
@@ -94,7 +94,7 @@ class YellowAgent(Robot):
 
     @staticmethod
     def deliberate(knowledge):
-        return [MOVE.DOWN]
+        return [choice(list(MOVE))]  
 
 
 class RedAgent(Robot):
@@ -114,4 +114,4 @@ class RedAgent(Robot):
 
     @staticmethod
     def deliberate(knowledge):
-        return [MOVE.LEFT]
+        return [choice(list(MOVE))]
