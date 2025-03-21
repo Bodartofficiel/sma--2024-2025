@@ -8,8 +8,12 @@ from model import RobotMission
 from server import agent_portrayal
 
 model_params = {
-    "n_robots": 5,
-    "n_wastes": 5,
+    "n_green_robots": 5,
+    "n_yellow_robots": 3,
+    "n_red_robots": 2,
+    "n_green_wastes": 9,
+    "n_yellow_wastes": 3,
+    "n_red_wastes": 2,
     "width": 9,
     "height": 9,
 }
