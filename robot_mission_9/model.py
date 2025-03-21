@@ -89,7 +89,7 @@ class RobotMission(Model):
         for agent_at_pos in self.grid.get_cell_list_contents([agent.pos]):
             if (
                 isinstance(agent_at_pos, Waste)
-                and Waste.color == agent.colleptable_waste_color
+                and agent_at_pos.color == agent.collectable_waste_color
             ):
                 self.grid.remove_agent(agent_at_pos)
                 return True

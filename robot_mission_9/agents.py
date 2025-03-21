@@ -17,13 +17,13 @@ class ACTION(Enum):
     DROP = "drop"
     
 class MOVEMENT(Enum):
-    UP = "up"
-    DOWN = "down"
-    LEFT = "left"
-    RIGHT = "right"
-    
+    UP = (0,1)
+    DOWN = (0,-1)
+    LEFT = (-1,0)
+    RIGHT = (1,0)
+
 def compute_new_position(pos, movement):
-    return pos[0] + movement[0], pos[1] + movement[1]
+    return pos[0] + movement.value[0], pos[1] + movement.value[1]
 
 class Robot(Agent):
     
@@ -44,21 +44,21 @@ class Robot(Agent):
 
     def step_agent(self):
         percepts = self.model.get_perception(self)
-        self.knowledge = self.update(self.knowledge, percepts)
-        action = self.deliberate(self.knowledge)
+        self.update_knowledge(percepts)
+        action = self.deliberate()
         self.act(action)
         
     def update_knowledge(self, percepts):
         self.knowledge.append(percepts)
     
-    def deliberate(self, knowledge):
-        perception = knowledge[-1]
+    def deliberate(self):
+        perception = self.knowledge[-1]
         if self._is_full:
-            return self.when_full_behavior(knowledge)
-        if self.color in perception["waste"] :
-            return self.when_seeing_waste_behavior(knowledge)
+            return self.when_full_behavior(self.knowledge)
+        if  len(perception["waste"][self.collectable_waste_color]) > 0:
+            return self.when_seeing_waste_behavior(self.knowledge)
         else:
-            return self.when_random_move(knowledge)
+            return self.when_random_move(self.knowledge)
         
     def act(self, action):
         match action[0]:
@@ -85,8 +85,9 @@ class Robot(Agent):
     def when_seeing_waste_behavior(self, knowledge):
         perception = knowledge[-1]
         if self.pos in perception["waste"][self.collectable_waste_color]:
-            return (ACTION.COLLECT)
+            return (ACTION.COLLECT,None)
         else:
+            print(perception["waste"][self.collectable_waste_color])
             return (ACTION.MOVE, choice(perception["waste"][self.collectable_waste_color]))
         
     def when_full_behavior(self, knowledge):
@@ -96,7 +97,7 @@ class Robot(Agent):
         if right in accessible_cases:
             return (ACTION.MOVE, right)
         else:
-            return (ACTION.DROP)
+            return (ACTION.DROP,None)
         
     ### actions ### 
 
