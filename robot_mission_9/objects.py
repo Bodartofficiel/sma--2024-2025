@@ -7,6 +7,9 @@ from typing import Literal
 
 from mesa import Agent, Model
 
+import logging
+logger = logging.getLogger("mon_logger")
+
 
 class Radioactivity(Agent):
     def __init__(self, zone: Literal["z1", "z2", "z3"], model: Model, *args, **kwargs):
@@ -24,9 +27,13 @@ class WasteDisposalZone(Agent):
         super().__init__(model, *args, **kwargs)
         self.zone = "z3"
         self.radioactivity = (2 + random()) / 3
+        self.storage = 0
         
     def step_agent(self):
-        pass
+        if self.model.try_to_dispose_waste(self):
+            self.storage += 1
+            logger.info(f"Waste disposed in zone {self.pos} - Storage: {self.storage}")
+            
 
 
 class Waste(Agent):

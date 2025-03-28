@@ -8,6 +8,8 @@ from mesa import DataCollector, Model
 from mesa.space import MultiGrid
 from objects import Radioactivity, Waste, WasteDisposalZone
 
+import logging
+logger = logging.getLogger("mon_logger")
 
 class RobotMission(Model):
     def __init__(
@@ -94,6 +96,15 @@ class RobotMission(Model):
                 self.grid.remove_agent(agent_at_pos)
                 return True
         return False
+    
+    def try_to_dispose_waste(self, agent):
+        assert isinstance(agent, WasteDisposalZone), "Selected agent is not a waste disposal zone!"
+        for agent_at_pos in self.grid.get_cell_list_contents([agent.pos]):
+            if isinstance(agent_at_pos, Waste):
+                if agent_at_pos.color == "red":
+                    self.grid.remove_agent(agent_at_pos)
+                    return True
+        return False
 
     def drop_waste(self, agent):
         assert isinstance(agent, Robot), "Selected agent is not a robot!"
@@ -113,6 +124,7 @@ class RobotMission(Model):
         green_wastes_pos = []
         yellow_wastes_pos = []
         red_wastes_pos = []
+        disposal_zone_pos = []
 
         for neighbor_agent in self.grid.get_neighbors(agent.pos, self.moore, True):
             if isinstance(neighbor_agent, Waste) and neighbor_agent.color == "green":
@@ -123,6 +135,9 @@ class RobotMission(Model):
 
             if isinstance(neighbor_agent, Waste) and neighbor_agent.color == "red":
                 red_wastes_pos.append(neighbor_agent.pos)
+                
+            if isinstance(neighbor_agent, WasteDisposalZone):
+                disposal_zone_pos.append(neighbor_agent.pos)
 
         return {
             "pos_access": pos_acces,
@@ -131,6 +146,7 @@ class RobotMission(Model):
                 "yellow": yellow_wastes_pos,
                 "red": red_wastes_pos,
             },
+            "diposal_zone_pos": disposal_zone_pos,
         }
 
     def do(self, agent, action):

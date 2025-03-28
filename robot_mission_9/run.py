@@ -7,10 +7,15 @@ from mesa.visualization import SolaraViz, make_space_component
 from model import RobotMission
 from server import agent_portrayal
 
+# logger
+
+from logging_config import configurer_logger
+logger = configurer_logger("mon_logger")
+
 model_params = {
-    "n_green_robots": 5,
-    "n_yellow_robots": 3,
-    "n_red_robots": 2,
+    "n_green_robots": 1,
+    "n_yellow_robots": 1,
+    "n_red_robots": 1,
     "n_green_wastes": 9,
     "n_yellow_wastes": 3,
     "n_red_wastes": 2,
