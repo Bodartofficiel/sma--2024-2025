@@ -1,6 +1,7 @@
 # Group 9
 # Bodart Thomas and Jacquemin Gaétan
 # Created March 11
+import logging
 from random import choice, randint, sample
 
 from agents import GreenAgent, RedAgent, Robot, YellowAgent
@@ -8,8 +9,8 @@ from mesa import DataCollector, Model
 from mesa.space import MultiGrid
 from objects import Radioactivity, Waste, WasteDisposalZone
 
-import logging
 logger = logging.getLogger("mon_logger")
+
 
 class RobotMission(Model):
     def __init__(
@@ -96,9 +97,11 @@ class RobotMission(Model):
                 self.grid.remove_agent(agent_at_pos)
                 return True
         return False
-    
+
     def try_to_dispose_waste(self, agent):
-        assert isinstance(agent, WasteDisposalZone), "Selected agent is not a waste disposal zone!"
+        assert isinstance(
+            agent, WasteDisposalZone
+        ), "Selected agent is not a waste disposal zone!"
         for agent_at_pos in self.grid.get_cell_list_contents([agent.pos]):
             if isinstance(agent_at_pos, Waste):
                 if agent_at_pos.color == "red":
@@ -113,13 +116,17 @@ class RobotMission(Model):
 
     def get_perception(self, agent):
         assert isinstance(agent, Robot), "Selected agent is not a robot!"
-        pos_acces = [
-            pos
-            for pos in self.grid.get_neighborhood(
-                agent.pos, self.moore, include_center=True
-            )
-            if self.is_accessible(pos, agent)
-        ]
+        pos_acces = []
+        pos_inaccess = []
+        for pos in self.grid.get_neighborhood(
+            agent.pos,
+            self.moore,
+            include_center=True,
+        ):
+            if self.is_accessible(pos, agent):
+                pos_acces.append(pos)
+            else:
+                pos_inaccess.append(pos)
 
         green_wastes_pos = []
         yellow_wastes_pos = []
@@ -135,7 +142,7 @@ class RobotMission(Model):
 
             if isinstance(neighbor_agent, Waste) and neighbor_agent.color == "red":
                 red_wastes_pos.append(neighbor_agent.pos)
-                
+
             if isinstance(neighbor_agent, WasteDisposalZone):
                 disposal_zone_pos.append(neighbor_agent.pos)
 
@@ -147,6 +154,7 @@ class RobotMission(Model):
                 "red": red_wastes_pos,
             },
             "diposal_zone_pos": disposal_zone_pos,
+            "pos_inaccess": pos_inaccess,
         }
 
     def do(self, agent, action):
