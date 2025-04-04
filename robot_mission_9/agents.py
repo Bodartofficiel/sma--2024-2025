@@ -8,30 +8,18 @@ from typing import Literal
 from mesa import Agent, Model
 from random import choice
 from enum import Enum
+from objects import Waste
 
 import logging
 logger = logging.getLogger("mon_logger")
 
-#### actions ####
 
-class ACTION(Enum):
-    MOVE = "move"
-    COLLECT = "collect"
-    DROP = "drop"
-    WAIT = "wait"
-    
-class MOVEMENT(Enum):
-    UP = (0,1)
-    DOWN = (0,-1)
-    LEFT = (-1,0)
-    RIGHT = (1,0)
-    STILL = (0,0)
-
-def compute_new_position(pos, movement):
-    return pos[0] + movement.value[0], pos[1] + movement.value[1]
+########## usefull ###########
 
 def euclidean_distance(pos1, pos2):
     return ((pos1[0] - pos2[0]) ** 2 + (pos1[1] - pos2[1]) ** 2) ** 0.5
+
+######### GENERIC ROBOT AGENT CLASS #########
 
 class Robot(Agent):
     
@@ -43,24 +31,27 @@ class Robot(Agent):
         self.knowledge = {
             "last_actions": [],
             "last_positions": [self.pos],
+            "is_full": False,
         }
         self.capacity = 2
         
         self.color = None
         self.collectable_waste_color = None
         self.dropped_waste_color = None
+        self.compacting_ratio = 2
         
         self.waste_in_possession = 0
-        self._is_full = False
+        self.distance_parcouru = 0
         
 
     def step_agent(self):
         percepts = self.model.get_perception(self)
         self.update_knowledge(percepts)
-        action = self.deliberate()
-        self.act(action)
+        action = self.deliberate(self.knowledge)
+        self.model.do(self, action)
         
     def update_knowledge(self, percepts):
+        self.is_full()
         self.knowledge["percept"] = percepts
         self.update_special_knowledge()
         
@@ -68,37 +59,21 @@ class Robot(Agent):
         """ pour définir des connaissances spécifiques à chaque type d' agent"""
         pass
     
-    def deliberate(self):
-        perception = self.knowledge["percept"]
-        if self._is_full:
+    def is_full(self):
+        if self.waste_in_possession >= self.capacity:
+            self.knowledge["is_full"] = True
+        else:
+            self.knowledge["is_full"] = False
+        return self.knowledge["is_full"]
+
+    def deliberate(self, knowledge=None):
+        perception = knowledge["percept"]
+        if knowledge["is_full"]:
             return self.when_full_behavior()
         if  len(perception["waste"][self.collectable_waste_color]) > 0:
             return self.when_seeing_waste_behavior()
         else:
             return self.when_random_move()
-        
-    def act(self, action):
-        match action[0]:
-            case ACTION.MOVE: self.move(action[1])
-            case ACTION.COLLECT: 
-                if self.model.pick_waste(self):
-                    self.waste_in_possession += 1
-                    logger.info(f"{self.__class__.__name__} {self.unique_id} collected waste at {self.pos}. ({self.waste_in_possession}/{self.capacity})")
-                    if self.waste_in_possession == self.capacity:
-                        self._is_full = True
-                        logger.info(f"{self.__class__.__name__} {self.unique_id} is now full.")
-                else:
-                    logger.warning(f"{self.__class__.__name__} {self.unique_id} failed to collect waste at {self.pos}.")    
-            case ACTION.DROP: 
-                assert self._is_full
-                if self.model.drop_waste(self):
-                    self._is_full = False
-                    self.waste_in_possession = 0
-                    logger.info(f"{self.__class__.__name__} {self.unique_id} dropped waste at {self.pos}.")
-                else:
-                    logger.warning(f"{self.__class__.__name__} {self.unique_id} failed to drop waste at {self.pos}.")
-            case ACTION.WAIT: pass
-        self.knowledge["last_actions"].append(action)
                     
     def get_last_action(self):
         if len(self.knowledge["last_actions"]) > 0:
@@ -115,32 +90,31 @@ class Robot(Agent):
         # print(self.pos, accessible_cases)
         case_to_move = choice(accessible_cases)
         logger.debug(f"Agent {self.__class__.__name__} is moving randomly to {case_to_move}")
-        return (ACTION.MOVE, case_to_move)
+        return MOVE(case_to_move)
             
     def when_seeing_waste_behavior(self):
         perception = self.knowledge["percept"]
         if self.pos in perception["waste"][self.collectable_waste_color]:
-            return (ACTION.COLLECT,None)
+            return PICK_WASTE()
         else:
-            # print(perception["waste"][self.collectable_waste_color])
-            return (ACTION.MOVE, choice(perception["waste"][self.collectable_waste_color]))
+            return MOVE(choice(perception["waste"][self.collectable_waste_color]))
         
     def when_full_behavior(self):
-        assert self._is_full
+        assert self.knowledge["is_full"]
         accessible_cases = self.knowledge["percept"]["pos_access"]
-        right = compute_new_position(self.pos, MOVEMENT.RIGHT)
+        right = self.pos[0] + 1, self.pos[1]
         if right in accessible_cases:
-            return (ACTION.MOVE, right)
+            return MOVE(right)
         else:
-            return (ACTION.DROP,None)
+            return DROP_WASTE()
         
     def _get_pos_neighboorhood(self):
         """Get the neighborhood of the agent
         return up, down, left, right"""
-        up = compute_new_position(self.pos, MOVEMENT.UP)
-        down = compute_new_position(self.pos, MOVEMENT.DOWN)
-        left = compute_new_position(self.pos, MOVEMENT.LEFT)
-        right = compute_new_position(self.pos, MOVEMENT.RIGHT)
+        up = self.pos[0], self.pos[1] + 1
+        down = self.pos[0], self.pos[1] - 1
+        left = self.pos[0] - 1, self.pos[1]
+        right = self.pos[0] + 1, self.pos[1]
         return (up, down, left, right)
         
     def compute_nearest_path_move(self, objective):
@@ -157,22 +131,12 @@ class Robot(Agent):
             if case in accessible_cases:
                 if euclidean_distance(case,objective) < current_distance_to_objective:
                     logger.debug(f"Agent {self.__class__.__name__} is moving towards {objective} to {case}")
-                    return (ACTION.MOVE, case)
+                    return MOVE(case)
         logger.error(f"Agent {self.__class__.__name__} cannot move towards {objective}")
-        return (ACTION.MOVE, choice(accessible_cases))
-    
-        
-    ### actions ### 
-
-    def move(self, new_pos):
-        current_pos = self.pos
-        try :
-            self.model.grid.move_agent(self, new_pos)
-            self.knowledge["last_positions"].append(current_pos)
-        except Exception as e:
-            logger.error(f"Error while moving {self.__class__.__name__} {self.unique_id} from {self.pos} to {new_pos}: {e}")
+        return MOVE(choice(accessible_cases))
 
 
+######### SPECIFIC ROBOT AGENT CLASSES ##########
 
 
 class GreenAgent(Robot):
@@ -202,19 +166,20 @@ class RedAgent(Robot):
         self.collectable_waste_color = "red"
         self.dropped_waste_color = "red"
         self.capacity = 1
+        self.compacting_ratio = 1
         self.last_move = None
         self.knowledge["disposal_zones_pos"] = set()
         
     def when_full_behavior(self):
         
-        assert self._is_full
+        assert self.knowledge["is_full"]
         accessible_cases = set(self.knowledge["percept"]["pos_access"])
         
         if self._has_disposal_zone_in_memory():
             objective = self.get_nearest_disposal_zone()
             if self.pos == objective: # si il est sur la zone de décharge
                 logger.info(f"{self.__class__.__name__} {self.unique_id} is dropping waste at {self.pos}. ({self.waste_in_possession}/{self.capacity})")
-                return (ACTION.DROP,None)
+                return DROP_WASTE()
             else:
                 return self.compute_nearest_path_move(objective)
         else:
@@ -224,7 +189,7 @@ class RedAgent(Robot):
             for direction in (right,down,up) :
                 if direction in accessible_cases:
                     logger.debug(f"{self.__class__.__name__} {self.unique_id} is full, looking for a disposal zone, moving to {direction}")
-                    return (ACTION.MOVE, direction)
+                    return MOVE(direction)
         logger.error(f"Agent {self.__class__.__name__} is full and cannot perform normaly.")
         return self.when_random_move()
         
@@ -242,3 +207,55 @@ class RedAgent(Robot):
         
     def _has_disposal_zone_in_memory(self):
         return len(self.knowledge["disposal_zones_pos"]) > 0
+
+
+
+########## ACTIONS ##########
+
+# action are function that take the model and the agent 
+# as first arguments and call functions or modify attributes on it
+
+# Decorator for the actions
+def action(func):
+    """Decorator that handle the other arguments of the action than the model and the agent.
+    handles also the Exception and log it if some occur"""
+    def wrapper(*args, **kwargs):
+        def func2(model, agent):
+            try:
+                func(model, agent, *args, **kwargs)
+            except Exception as e:
+                logger.error(f"Error in action {func.__name__}: {e}")
+                return False
+            return True
+        return func2
+    return wrapper
+
+@action
+def MOVE(model, agent, new_pos):
+    """Move the agent to the right"""
+    assert new_pos in agent.model.grid.get_neighborhood(agent.pos, include_center=True, moore = model.moore), "New position is not in the neighborhood"
+    model.grid.move_agent(agent, new_pos)
+
+@action
+def DROP_WASTE(model, agent):
+    """Drop the waste in the disposal zone"""
+    assert isinstance(agent, Robot), "Agent is not a Robot"
+    assert agent.waste_in_possession >= agent.compacting_ratio, "Agent does not have enough waste to drop"
+    waste_color = agent.dropped_waste_color
+    model.grid.place_agent(Waste(color=waste_color,model=model), agent.pos)
+    agent.waste_in_possession -= agent.compacting_ratio
+    logger.info(f"Agent {agent.__class__.__name__} {agent.unique_id} dropped waste at {agent.pos}. ({agent.waste_in_possession}/{agent.capacity})")
+    
+@action
+def PICK_WASTE(model, agent):
+    """Pick the waste in the disposal zone"""
+    assert isinstance(agent, Robot), "Agent is not a Robot"
+    assert not agent.is_full(), "Agent is full"
+    waste_color = agent.collectable_waste_color
+    for agent_at_pos in model.grid.get_cell_list_contents([agent.pos]):
+        if isinstance(agent_at_pos, Waste) and agent_at_pos.color == waste_color:
+            model.grid.remove_agent(agent_at_pos)
+            agent.waste_in_possession += 1
+            logger.info(f"Agent {agent.__class__.__name__} {agent.unique_id} picked up waste at {agent.pos}. ({agent.waste_in_possession}/{agent.capacity})")
+            return
+    raise ValueError("No waste to pick up in the disposal zone")

@@ -12,18 +12,76 @@ from server import agent_portrayal
 from logging_config import configurer_logger
 logger = configurer_logger("mon_logger")
 
-model_params = {
-    "n_green_robots": 1,
-    "n_yellow_robots": 1,
-    "n_red_robots": 1,
-    "n_green_wastes": 9,
-    "n_yellow_wastes": 3,
-    "n_red_wastes": 2,
+
+default_values = {
+    "seed": 42,
     "width": 9,
     "height": 9,
+    "n_green_robots": 3,
+    "n_yellow_robots": 2,
+    "n_red_robots": 1,
+    "n_green_wastes": 8,
+    "n_yellow_wastes": 4,
+    "n_red_wastes": 2,
 }
 
-model = RobotMission(**model_params)
+slider_params = {
+    "width": 9,
+    "height": 9,
+    "seed": {
+        "name": "Random seed",
+        "type": "InputText",
+        "value": default_values["seed"],
+    },
+    "n_green_robots": {
+        "name": "Number of green robots",
+        "type": "SliderInt",
+        "value": default_values["n_green_robots"],
+        "min": 1,
+        "max": 10,
+    },
+    "n_yellow_robots": {
+        "name": "Number of yellow robots",
+        "type": "SliderInt",
+        "value": default_values["n_yellow_robots"],
+        "min": 1,
+        "max": 10,
+    },
+    "n_red_robots":{
+        "name": "Number of red robots",
+        "type": "SliderInt",
+        "value": default_values["n_red_robots"],
+        "min": 1,
+        "max": 10,
+    },
+    "n_green_wastes":{
+        "name": "Number of green wastes",
+        "type": "SliderInt",
+        "value": default_values["n_green_wastes"],
+        "min": 1,
+        "max": 10,
+    },
+    "n_yellow_wastes":{
+        "name": "Number of red robots",
+        "type": "SliderInt",
+        "value": default_values["n_yellow_wastes"],
+        "min": 1,
+        "max": 10,
+    },
+    "n_red_wastes":{
+        "name": "Number of red robots",
+        "type": "SliderInt",
+        "value": default_values["n_red_wastes"],
+        "min": 1,
+        "max": 10,
+    },
+    
+    
+}
+
+# sliders: 
+
+model = RobotMission(**default_values)
 
 
 SpaceGraph = make_space_component(agent_portrayal)
@@ -33,6 +91,9 @@ SpaceGraph = make_space_component(agent_portrayal)
 
 if __name__ == "__main__":
     page = SolaraViz(
-        model, components=[SpaceGraph], name="Robot Mission", model_params=model_params
+        model = model,
+        components=[SpaceGraph], 
+        name="Robot Mission", 
+        model_params={**slider_params},
     )
-    page
+    # page

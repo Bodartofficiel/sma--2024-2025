@@ -1,7 +1,8 @@
 # Group 9
 # Bodart Thomas and Jacquemin Gaétan
 # Created March 11
-from random import choice, randint, sample
+import random as rd
+from typing import Callable
 
 from agents import GreenAgent, RedAgent, Robot, YellowAgent
 from mesa import DataCollector, Model
@@ -14,24 +15,26 @@ logger = logging.getLogger("mon_logger")
 class RobotMission(Model):
     def __init__(
         self,
-        n_green_robots: int,
-        n_yellow_robots: int,
-        n_red_robots: int,
-        n_green_wastes: int,
-        n_yellow_wastes: int,
-        n_red_wastes: int,
-        width: int,
-        height: int,
+        n_green_robots: int=1,
+        n_yellow_robots: int=1,
+        n_red_robots: int=1,
+        n_green_wastes: int=5,
+        n_yellow_wastes: int=3,
+        n_red_wastes: int=2,
+        width: int=9,
+        height: int = 9,
         moore: bool = False,
         seed=None,
     ):
         super().__init__(seed=seed)
+        rd.seed(seed)
+        
         self.grid = MultiGrid(width, height, moore)
         self.width = width
         self.height = height
         self.moore = moore
 
-        waste_collector_pos = (self.width - 1, randint(0, self.height - 1))
+        waste_collector_pos = (self.width - 1, rd.randint(0, self.height - 1))
         self.green_zone = [
             (x, y) for x in range(0, self.width // 3) for y in range(self.height)
         ]
@@ -60,26 +63,29 @@ class RobotMission(Model):
                 self.grid.place_agent(Radioactivity(zone, self), (x, y))
 
         # Place wastes
-        for pos in sample(self.green_zone, n_green_wastes):
+        for pos in rd.sample(self.green_zone, n_green_wastes):
             self.grid.place_agent(Waste("green", self), pos)
 
-        for pos in sample(self.yellow_zone, n_yellow_wastes):
+        for pos in rd.sample(self.yellow_zone, n_yellow_wastes):
             self.grid.place_agent(Waste("yellow", self), pos)
 
-        for pos in sample(self.red_zone, n_red_wastes):
+        for pos in rd.sample(self.red_zone, n_red_wastes):
             self.grid.place_agent(Waste("red", self), pos)
 
         # Place robots
-        for pos in sample(self.green_zone, n_green_robots):
+        for pos in rd.sample(self.green_zone, n_green_robots):
             self.grid.place_agent(GreenAgent(self), pos)
 
-        for pos in sample(self.green_zone + self.yellow_zone, n_yellow_robots):
+        for pos in rd.sample(self.green_zone + self.yellow_zone, n_yellow_robots):
             self.grid.place_agent(YellowAgent(self), pos)
 
-        for pos in sample(
+        for pos in rd.sample(
             self.green_zone + self.yellow_zone + self.red_zone, n_red_robots
         ):
             self.grid.place_agent(RedAgent(self), pos)
+        
+        
+
 
     def move_robot(self, agent, pos):
         assert isinstance(agent, Robot), "Selected agent is not a robot!"
@@ -149,8 +155,10 @@ class RobotMission(Model):
             "diposal_zone_pos": disposal_zone_pos,
         }
 
-    def do(self, agent, action):
-        action.execute(self, agent)
+    def do(self, agent, action:Callable):
+        """Perform the action on the agent.
+        an action is a function that takes the model and the agent as arguments"""
+        action(self, agent)
 
     def step(self):
         self.agents.shuffle_do("step_agent")
