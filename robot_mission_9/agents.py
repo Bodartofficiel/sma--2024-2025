@@ -215,6 +215,8 @@ class RedAgent(Robot):
 # action are function that take the model and the agent 
 # as first arguments and call functions or modify attributes on it
 
+# action should then be returned by the deliberate function like that : MOVE(new_pos)
+
 # Decorator for the actions
 def action(func):
     """Decorator that handle the other arguments of the action than the model and the agent.
