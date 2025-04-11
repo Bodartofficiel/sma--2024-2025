@@ -4,3 +4,5 @@
 il faudrait empécher a l'agent rouge de collecter 2 fois d'affilé.
 
 - il faut implémenter les déplacements en forme d'escargot.
+    --> Soit le robot cherche à découvrir où il peut aller
+    --> Soit le robot cherche un waste
