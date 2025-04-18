@@ -2,6 +2,7 @@
 # Bodart Thomas and Jacquemin Gaétan
 # Created March 11
 
+from matplotlib import pyplot as plt
 from agents import *
 
 # logger
@@ -9,6 +10,16 @@ from logging_config import configurer_logger
 from mesa.visualization import SolaraViz, make_space_component
 from model import RobotMission
 from server import agent_portrayal
+
+import solara
+from matplotlib.figure import Figure
+
+from mesa.visualization.utils import update_counter
+from mesa.visualization import SolaraViz, make_plot_component, make_space_component
+
+# logger
+
+from logging_config import configurer_logger
 
 logger = configurer_logger("mon_logger")
 
@@ -96,13 +107,35 @@ model = RobotMission(**default_values)
 
 SpaceGraph = make_space_component(agent_portrayal)
 
+
+
+# @solara.component
+# def pistance_plot(model: RobotMission):
+#     update_counter.get() # This is required to update the counter
+#     fig = plt.Figure()
+#     ax = fig.subplots()
+#     red_data = model.datacollector.get_agenttype_vars_dataframe(RedAgent)
+#     print("REDDATA:",red_data)
+#     # yellow_data = model.datacollector.get_agenttype_vars_dataframe(YellowAgent)["fuel"].sum()
+#     # green_data = model.datacollector.get_agenttype_vars_dataframe(GreenAgent)["fuel"].sum()
+    
+
+distance_plot = make_plot_component(
+    ["total_distance","yellow_distance", "green_distance","red_distance" ],
+)
+
+wastes_plot = make_plot_component(
+    [ "total_wastes","yellow_wastes", "green_wastes", "red_wastes" ],
+)
+
+
 # page = SolaraViz(model, components=[SpaceGraph], name="Robot Mission")
 
 
 if __name__ == "__main__":
     page = SolaraViz(
         model=model,
-        components=[SpaceGraph],
+        components=[SpaceGraph, wastes_plot,distance_plot],
         name="Robot Mission",
         model_params={**slider_params},
     )

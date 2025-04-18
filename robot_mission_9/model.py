@@ -10,35 +10,68 @@ from mesa.space import MultiGrid
 from objects import Radioactivity, Waste, WasteDisposalZone
 
 import logging
+
 logger = logging.getLogger("mon_logger")
-    
+
 
 class RobotMission(Model):
     def __init__(
         self,
-        n_green_robots: int=1,
-        n_yellow_robots: int=1,
-        n_red_robots: int=1,
-        n_green_wastes: int=5,
-        n_yellow_wastes: int=3,
-        n_red_wastes: int=2,
-        width: int=9,
+        n_green_robots: int = 1,
+        n_yellow_robots: int = 1,
+        n_red_robots: int = 1,
+        n_green_wastes: int = 5,
+        n_yellow_wastes: int = 3,
+        n_red_wastes: int = 2,
+        width: int = 9,
         height: int = 9,
         moore: bool = False,
         seed=None,
     ):
         super().__init__(seed=seed)
         rd.seed(seed)
-        
+
         self.grid = MultiGrid(width, height, moore)
         self.width = width
         self.height = height
         self.moore = moore
-        
-        self.data_collector = DataCollector(
-            agent_reporters={
-                "fuel":"fuel"
-            }
+
+        self.datacollector = DataCollector(
+            agent_reporters={"fuel": "fuel"},
+            model_reporters={
+                "green_wastes": lambda m: len(
+                    [
+                        agent
+                        for agent in m.agents_by_type[Waste]
+                        if agent.color == "green"
+                    ]
+                ),
+                "yellow_wastes": lambda m: len(
+                    [
+                        agent
+                        for agent in m.agents_by_type[Waste]
+                        if agent.color == "yellow"
+                    ]
+                ),
+                "red_wastes": lambda m: len(
+                    [agent for agent in m.agents_by_type[Waste] if agent.color == "red"]
+                ),
+                "total_wastes": lambda m: len(
+                    [agent for agent in m.agents_by_type[Waste]]
+                ),
+                "green_distance": lambda m: sum(
+                    [agent.fuel for agent in m.agents_by_type[GreenAgent]]
+                ),
+                "yellow_distance": lambda m: sum(
+                    [agent.fuel for agent in m.agents_by_type[YellowAgent]]
+                ),
+                "red_distance": lambda m: sum(
+                    [agent.fuel for agent in m.agents_by_type[RedAgent]]
+                ),
+                "total_distance": lambda m: sum(
+                    [agent.fuel for agent in m.agents if isinstance(agent, Robot)]
+                ),
+            },
         )
 
         waste_collector_pos = (self.width - 1, rd.randint(0, self.height - 1))
@@ -90,9 +123,6 @@ class RobotMission(Model):
             self.green_zone + self.yellow_zone + self.red_zone, n_red_robots
         ):
             self.grid.place_agent(RedAgent(self), pos)
-        
-        
-
 
     def move_robot(self, agent, pos):
         assert isinstance(agent, Robot), "Selected agent is not a robot!"
@@ -107,11 +137,14 @@ class RobotMission(Model):
                 and agent_at_pos.color == agent.collectable_waste_color
             ):
                 self.grid.remove_agent(agent_at_pos)
+                agent_at_pos.remove()
                 return True
         return False
-    
+
     def try_to_dispose_waste(self, agent):
-        assert isinstance(agent, WasteDisposalZone), "Selected agent is not a waste disposal zone!"
+        assert isinstance(
+            agent, WasteDisposalZone
+        ), "Selected agent is not a waste disposal zone!"
         for agent_at_pos in self.grid.get_cell_list_contents([agent.pos]):
             if isinstance(agent_at_pos, Waste):
                 if agent_at_pos.color == "red":
@@ -148,7 +181,7 @@ class RobotMission(Model):
 
             if isinstance(neighbor_agent, Waste) and neighbor_agent.color == "red":
                 red_wastes_pos.append(neighbor_agent.pos)
-                
+
             if isinstance(neighbor_agent, WasteDisposalZone):
                 disposal_zone_pos.append(neighbor_agent.pos)
 
@@ -162,13 +195,13 @@ class RobotMission(Model):
             "diposal_zone_pos": disposal_zone_pos,
         }
 
-    def do(self, agent, action:Callable):
+    def do(self, agent, action: Callable):
         """Perform the action on the agent.
         an action is a function that takes the model and the agent as arguments"""
         action(self, agent)
 
     def step(self):
-        self.data_collector.collect(self)
+        self.datacollector.collect(self)
         self.agents.shuffle_do("step_agent")
 
     def is_accessible(self, pos, agent):
