@@ -33,9 +33,9 @@ default_values = {
     "n_green_robots": 5,
     "n_yellow_robots": 4,
     "n_red_robots": 3,
-    "n_green_wastes": 25,
-    "n_yellow_wastes": 15,
-    "n_red_wastes": 8,
+    "n_green_wastes": 30,
+    "n_yellow_wastes": 20,
+    "n_red_wastes": 10,
 }
 
 slider_params = {
