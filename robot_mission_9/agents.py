@@ -3,7 +3,7 @@
 # Created March 11
 
 from collections import defaultdict
-from typing import Literal
+from typing import Literal, Tuple
 
 from mesa import Agent, Model
 from random import choice
@@ -41,7 +41,7 @@ class Robot(Agent):
         self.compacting_ratio = 2
         
         self.waste_in_possession = 0
-        self.distance_parcouru = 0
+        self.fuel = 0
         
 
     def step_agent(self):
@@ -233,10 +233,11 @@ def action(func):
     return wrapper
 
 @action
-def MOVE(model, agent, new_pos):
+def MOVE(model, agent:Robot, new_pos:Tuple[int,int]):
     """Move the agent to the right"""
     assert new_pos in agent.model.grid.get_neighborhood(agent.pos, include_center=True, moore = model.moore), "New position is not in the neighborhood"
     model.grid.move_agent(agent, new_pos)
+    agent.fuel += 1
 
 @action
 def DROP_WASTE(model, agent):
