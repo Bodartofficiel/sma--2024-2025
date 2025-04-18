@@ -56,6 +56,24 @@ class Robot(Agent):
     def update_knowledge(self, percepts):
         self.is_full()
         self.knowledge["percept"] = percepts
+
+        # If the agent perceive a position where he has seen a waste, and the waste is no more, remove it
+        for perceived_position in percepts["pos_access"]:
+            perceived_waste_positions = percepts["waste"][self.collectable_waste_color]
+            if (
+                perceived_position in self.knowledge["wastes_position"]
+                and perceived_position not in perceived_waste_positions
+            ):
+                self.knowledge["wastes_position"].remove(perceived_position)
+
+        # If the agent is full and sees a waste, he remembers it
+        my_color_wastes = percepts["waste"][self.collectable_waste_color]
+        if self.is_full and len(my_color_wastes) > 0:
+            self.knowledge["wastes_position"] = list(
+                set(my_color_wastes).union(self.knowledge["wastes_position"])
+            )
+
+        print(self.knowledge)
         self.update_special_knowledge()
 
     def update_special_knowledge(self):
@@ -75,6 +93,8 @@ class Robot(Agent):
             return self.when_full_behavior()
         if len(perception["waste"][self.collectable_waste_color]) > 0:
             return self.when_seeing_waste_behavior()
+        if len(self.knowledge["wastes_position"]) > 0:
+            return self.when_heading_toward_waste_behavior()
         else:
             return self.snake_move()
             # return self.when_random_move()
@@ -140,6 +160,13 @@ class Robot(Agent):
             return PICK_WASTE()
         else:
             return MOVE(choice(perception["waste"][self.collectable_waste_color]))
+
+    def when_heading_toward_waste_behavior(self):
+        nearest_waste = min(
+            self.knowledge["wastes_position"],
+            key=lambda x: euclidean_distance(self.pos, x),
+        )
+        return self.compute_nearest_path_move(nearest_waste)
 
     def when_full_behavior(self):
         assert self.knowledge["is_full"]
