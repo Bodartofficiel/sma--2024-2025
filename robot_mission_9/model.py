@@ -133,6 +133,7 @@ class RobotMission(Model):
             if isinstance(agent_at_pos, Waste):
                 if agent_at_pos.color == "red":
                     self.grid.remove_agent(agent_at_pos)
+                    agent_at_pos.remove()
                     return True
         return False
 
