@@ -28,14 +28,14 @@ logger = configurer_logger("mon_logger")
 
 default_values = {
     "seed": 42,
-    "width": 20,
-    "height": 20,
-    "n_green_robots": 3,
-    "n_yellow_robots": 2,
-    "n_red_robots": 1,
-    "n_green_wastes": 8,
-    "n_yellow_wastes": 4,
-    "n_red_wastes": 2,
+    "width": 36,
+    "height": 25,
+    "n_green_robots": 5,
+    "n_yellow_robots": 4,
+    "n_red_robots": 3,
+    "n_green_wastes": 25,
+    "n_yellow_wastes": 15,
+    "n_red_wastes": 8,
 }
 
 slider_params = {
