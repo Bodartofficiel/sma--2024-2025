@@ -10,19 +10,19 @@ def agent_portrayal(agent):
     if isinstance(agent, WasteDisposalZone):
         return {
             "color": f"black",
-            "marker": "s",
-            "size": 1000,
-            "alpha": 0.4,
+            "marker": "x",
+            "size": 100,
+            "alpha": 1,
         }
 
     if isinstance(agent, Radioactivity):
         zone_to_color_mapping = {"z1": "green", "z2": "yellow", "z3": "red"}
         color = zone_to_color_mapping[agent.zone]
         return {
-            "color": f"{color}",
-            "marker": "s",
-            "size": 1000,
-            "alpha": 0.1,
+            "color": "white",
+            # "marker": "s",
+            "size": 0,
+            "alpha": 1,
         }
 
     if isinstance(agent, Robot):

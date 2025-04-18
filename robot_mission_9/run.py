@@ -11,6 +11,8 @@ from mesa.visualization import SolaraViz, make_space_component
 from model import RobotMission
 from server import agent_portrayal
 
+from matplotlib.colors import LinearSegmentedColormap
+
 import solara
 from matplotlib.figure import Figure
 
@@ -105,7 +107,17 @@ slider_params = {
 model = RobotMission(**default_values)
 
 
-SpaceGraph = make_space_component(agent_portrayal)
+# Définir une colormap allant de vert à rouge
+colors = ["green", "yellow", "red"]
+cmap = LinearSegmentedColormap.from_list("green_to_red", colors)
+
+SpaceGraph = make_space_component(
+    agent_portrayal,
+    propertylayer_portrayal={"radioactivity":
+        {"colormap":cmap, 'alpha':.25, "colorbar":False,"vmin":0, "vmax":1}},
+    )
+
+# {"some_layer":{"colormap":'viridis', 'alpha':.25, "colorbar":False}}
 
 
 
@@ -121,11 +133,11 @@ SpaceGraph = make_space_component(agent_portrayal)
     
 
 distance_plot = make_plot_component(
-    ["total_distance","yellow_distance", "green_distance","red_distance" ],
+    [ "total_distance", "yellow_distance", "green_distance", "red_distance"],
 )
 
 wastes_plot = make_plot_component(
-    [ "total_wastes","yellow_wastes", "green_wastes", "red_wastes" ],
+    [ "total_wastes", "yellow_wastes", "green_wastes", "red_wastes"],
 )
 
 

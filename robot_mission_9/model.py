@@ -6,7 +6,7 @@ from typing import Callable
 
 from agents import GreenAgent, RedAgent, Robot, YellowAgent
 from mesa import DataCollector, Model
-from mesa.space import MultiGrid
+from mesa.space import MultiGrid, PropertyLayer
 from objects import Radioactivity, Waste, WasteDisposalZone
 
 import logging
@@ -30,8 +30,10 @@ class RobotMission(Model):
     ):
         super().__init__(seed=seed)
         rd.seed(seed)
+        
+        radiactivity_layer = PropertyLayer("radioactivity",width,height,default_value=0.)
 
-        self.grid = MultiGrid(width, height, moore)
+        self.grid = MultiGrid(width, height, moore, property_layers=[radiactivity_layer])
         self.width = width
         self.height = height
         self.moore = moore
@@ -99,8 +101,10 @@ class RobotMission(Model):
                 )
                 if (x, y) == waste_collector_pos:
                     self.grid.place_agent(WasteDisposalZone(self), (x, y))
-                    continue
-                self.grid.place_agent(Radioactivity(zone, self), (x, y))
+                
+                radiactivity_agent = Radioactivity(zone, self)
+                self.grid.place_agent( radiactivity_agent, (x, y))
+                self.grid.properties["radioactivity"].set_cell((x,y),radiactivity_agent.radioactivity)
 
         # Place wastes
         for pos in rd.sample(self.green_zone, n_green_wastes):
