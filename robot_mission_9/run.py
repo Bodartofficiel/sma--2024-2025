@@ -82,21 +82,21 @@ slider_params = {
         "type": "SliderInt",
         "value": default_values["n_green_wastes"],
         "min": 1,
-        "max": 10,
+        "max": 50,
     },
     "n_yellow_wastes": {
         "name": "Number of red robots",
         "type": "SliderInt",
         "value": default_values["n_yellow_wastes"],
         "min": 1,
-        "max": 10,
+        "max": 50,
     },
     "n_red_wastes": {
         "name": "Number of red robots",
         "type": "SliderInt",
         "value": default_values["n_red_wastes"],
         "min": 1,
-        "max": 10,
+        "max": 50,
     },
 }
 

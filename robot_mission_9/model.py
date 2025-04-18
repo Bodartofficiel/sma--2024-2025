@@ -124,22 +124,6 @@ class RobotMission(Model):
         ):
             self.grid.place_agent(RedAgent(self), pos)
 
-    def move_robot(self, agent, pos):
-        assert isinstance(agent, Robot), "Selected agent is not a robot!"
-        self.grid.move_agent(agent, pos)
-
-    def pick_waste(self, agent):
-        assert isinstance(agent, Robot), "Selected agent is not a robot!"
-
-        for agent_at_pos in self.grid.get_cell_list_contents([agent.pos]):
-            if (
-                isinstance(agent_at_pos, Waste)
-                and agent_at_pos.color == agent.collectable_waste_color
-            ):
-                self.grid.remove_agent(agent_at_pos)
-                agent_at_pos.remove()
-                return True
-        return False
 
     def try_to_dispose_waste(self, agent):
         assert isinstance(

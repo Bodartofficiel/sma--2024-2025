@@ -76,7 +76,7 @@ class Robot(Agent):
                 set(my_color_wastes).union(self.knowledge["wastes_position"])
             )
 
-        print(self.knowledge)
+        # print(self.knowledge)
         self.update_special_knowledge()
 
     def update_special_knowledge(self):
@@ -350,6 +350,7 @@ def PICK_WASTE(model, agent):
     for agent_at_pos in model.grid.get_cell_list_contents([agent.pos]):
         if isinstance(agent_at_pos, Waste) and agent_at_pos.color == waste_color:
             model.grid.remove_agent(agent_at_pos)
+            agent_at_pos.remove()
             agent.waste_in_possession += 1
             logger.info(
                 f"Agent {agent.__class__.__name__} {agent.unique_id} picked up waste at {agent.pos}. ({agent.waste_in_possession}/{agent.capacity})"
