@@ -27,21 +27,21 @@ def agent_portrayal(agent):
 
     if isinstance(agent, Robot):
         if agent.color == "yellow":
-            return {"color": "#FFA07A", "size": 40, "alpha": 1}
+            return {"color": "#FFA07A", "size": 35, "alpha": 1}
         elif agent.color == "red":
-            return {"color": "#8B0000", "size": 40, "alpha": 1}
-        return {"color": "#006400", "size": 40, "alpha": 1}
+            return {"color": "#8B0000", "size": 35, "alpha": 1}
+        return {"color": "#006400", "size": 35, "alpha": 1}
     if isinstance(agent, Waste):
         if agent.color == "yellow":
             return {
                 "color": "orange",
-                "size": 100,
+                "size": 60,
                 "alpha": 1,
                 "marker": "*",
             }
         return {
             "color": f"{agent.color}",
             "alpha": 1,
-            "size": 100,
+            "size": 60,
             "marker": "*",
         }
