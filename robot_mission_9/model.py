@@ -11,6 +11,7 @@ from objects import Radioactivity, Waste, WasteDisposalZone
 
 import logging
 logger = logging.getLogger("mon_logger")
+    
 
 class RobotMission(Model):
     def __init__(
@@ -33,6 +34,12 @@ class RobotMission(Model):
         self.width = width
         self.height = height
         self.moore = moore
+        
+        self.data_collector = DataCollector(
+            agent_reporters={
+                "fuel":"fuel"
+            }
+        )
 
         waste_collector_pos = (self.width - 1, rd.randint(0, self.height - 1))
         self.green_zone = [
@@ -161,6 +168,7 @@ class RobotMission(Model):
         action(self, agent)
 
     def step(self):
+        self.data_collector.collect(self)
         self.agents.shuffle_do("step_agent")
 
     def is_accessible(self, pos, agent):

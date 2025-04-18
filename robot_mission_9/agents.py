@@ -2,6 +2,8 @@
 # Bodart Thomas and Jacquemin Gaétan
 # Created March 11
 
+from collections import defaultdict
+from typing import Literal, Tuple
 
 import logging
 from random import choice
@@ -46,7 +48,8 @@ class Robot(Agent):
         self.horizontal_direction = choice([(1, 0), (-1, 0)])
         self.vertical_direction = choice([(0, 1), (0, -1)])
         self.vertical_walk = 0
-
+        self.fuel = 0
+    
     def step_agent(self):
         percepts = self.model.get_perception(self)
         self.update_knowledge(percepts)
@@ -314,12 +317,13 @@ def action(func):
 
 
 @action
-def MOVE(model, agent, new_pos):
+def MOVE(model, agent:Robot, new_pos:Tuple[int,int]):
     """Move the agent to the right"""
     assert new_pos in agent.model.grid.get_neighborhood(
         agent.pos, include_center=True, moore=model.moore
     ), "New position is not in the neighborhood"
     model.grid.move_agent(agent, new_pos)
+    agent.fuel += 1
 
 
 @action
