@@ -31,6 +31,16 @@ Pour changer les stratégies il faut modifier la méthode déliberate dans la cl
 
 ## Strategies et résultats
 
+On compare 3 stratégie de la plus simple à la plus compelxe, ci-dessous un tableau avec un comparatif des stratégies:
+
+| Stratégie             | Description                                             | Ramassage total | Temps moyen (steps) | Observations principales                                           |
+|-----------------------|---------------------------------------------------------|------------------|----------------------|--------------------------------------------------------------------|
+| Recherche Aléatoire   | Déplacement aléatoire pour trouver les déchets          | ❌               | ~1000                | Très lente, inefficace pour les robots rouges                      |
+| Mémoire des déchets   | Les robots mémorisent les déchets vus                   | ✅               | ~500-700             | Amélioration nette, surtout en début de simulation                 |
+| Stratégie "Serpent"   | Parcours systématique pour couvrir toute la zone        | ✅               | ~250-300             | Meilleure efficacité globale, déchets ramassés très rapidement     |
+
+
+
 ### Random search
 
 #### Description
@@ -208,3 +218,4 @@ We have three different types of robots:
 You have to create a folder named `robot_mission_9`, which will contain different files. Each file should include the number of the group, the date of creation, and the names of the members of the group at the top.
 
 
+corrige les fautes
