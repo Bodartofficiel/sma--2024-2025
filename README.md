@@ -75,7 +75,7 @@ On observe une très nette amélioration des résultats. Ce qui est remarquable 
 
 De plus, les robots arrivent à ramasser l'integralité des déchets cette fois, et sur les 20 runs menés, le plus lent des modèle a mit 700 étapes pour ramasser tout les déchets, bien moins que précedemment.
 
-### Snake stratégy
+### Snake strategy
 
 #### Description
 
