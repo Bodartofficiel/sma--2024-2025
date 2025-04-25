@@ -100,7 +100,7 @@ class Robot(Agent):
             return self.when_heading_toward_waste_behavior()
         else:
             return self.snake_move()
-            # return self.when_random_move()
+            return self.when_random_move()
 
     def get_last_action(self):
         if len(self.knowledge["last_actions"]) > 0:
@@ -263,8 +263,9 @@ class RedAgent(Robot):
                         f"{self.__class__.__name__} {self.unique_id} is full, looking for a disposal zone, moving to {direction}"
                     )
                     return MOVE(direction)
+                
         logger.error(
-            f"Agent {self.__class__.__name__} is full and cannot perform normaly."
+            f"Agent {self.__class__.__name__} is full and cannot perform normaly, performing random moove."
         )
         return self.when_random_move()
 
@@ -322,6 +323,7 @@ def MOVE(model, agent:Robot, new_pos:Tuple[int,int]):
     assert new_pos in agent.model.grid.get_neighborhood(
         agent.pos, include_center=True, moore=model.moore
     ), "New position is not in the neighborhood"
+    agent.knowledge["last_positions"].append(agent.pos)
     model.grid.move_agent(agent, new_pos)
     agent.fuel += 1
 

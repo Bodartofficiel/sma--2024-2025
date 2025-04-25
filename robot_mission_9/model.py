@@ -8,6 +8,8 @@ from agents import GreenAgent, RedAgent, Robot, YellowAgent
 from mesa import DataCollector, Model
 from mesa.space import MultiGrid, PropertyLayer
 from objects import Radioactivity, Waste, WasteDisposalZone
+from datetime import datetime
+import os
 
 import logging
 
@@ -37,6 +39,11 @@ class RobotMission(Model):
         self.width = width
         self.height = height
         self.moore = moore
+        self._is_running = True
+        
+        self.launch_time_stamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        data_path = os.path.join(os.path.dirname(__file__),"data")
+        self.data_filename = os.path.join(data_path,f"{self.launch_time_stamp}_datadump.csv")
 
         self.datacollector = DataCollector(
             agent_reporters={"fuel": "fuel"},
@@ -120,12 +127,10 @@ class RobotMission(Model):
         for pos in rd.sample(self.green_zone, n_green_robots):
             self.grid.place_agent(GreenAgent(self), pos)
 
-        for pos in rd.sample(self.green_zone + self.yellow_zone, n_yellow_robots):
+        for pos in rd.sample(self.yellow_zone, n_yellow_robots):
             self.grid.place_agent(YellowAgent(self), pos)
 
-        for pos in rd.sample(
-            self.green_zone + self.yellow_zone + self.red_zone, n_red_robots
-        ):
+        for pos in rd.sample(self.red_zone, n_red_robots):
             self.grid.place_agent(RedAgent(self), pos)
 
 
@@ -188,10 +193,27 @@ class RobotMission(Model):
         """Perform the action on the agent.
         an action is a function that takes the model and the agent as arguments"""
         action(self, agent)
+        
+    def _is_waste_present(self):
+        """Check if there is waste in the grid."""
+        if len(self.agents_by_type[Waste]) > 0:
+            return True
+        return False
 
     def step(self):
-        self.datacollector.collect(self)
-        self.agents.shuffle_do("step_agent")
+        if not self._is_running:
+            return
+        if self._is_waste_present():
+            self.datacollector.collect(self)
+            self.agents.shuffle_do("step_agent")
+        else: # save at the end
+            self._is_running = False
+            self.datacollector.get_model_vars_dataframe().to_csv(self.data_filename)
+            
+        if self.steps%10 == 0: #save every 10 steps
+            self.datacollector.get_model_vars_dataframe().to_csv(self.data_filename)
+            
+            
 
     def is_accessible(self, pos, agent):
         i, j = pos

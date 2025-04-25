@@ -28,8 +28,8 @@ logger = configurer_logger("mon_logger")
 
 default_values = {
     "seed": 42,
-    "width": 30,
-    "height": 20,
+    "width": 21,
+    "height": 12,
     "n_green_robots": 5,
     "n_yellow_robots": 4,
     "n_red_robots": 3,
