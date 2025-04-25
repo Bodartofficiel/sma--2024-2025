@@ -13,6 +13,21 @@ Pour une facilité de lecture les consignes précises de l'exercice sont rappel�
 
 On présente d'abord les stratégies implémentés et les résultats associés, puis le protocole et les spécificité de notre implémentation, et enfin la consigne donné par les professeur-e-s.
 
+## Utilisation
+
+Dans 'robot_mission_9' vous trouverez le fichier 'run.py' qui permet de lancer la simulation.
+
+lancer la simulation avec la commande suivante:
+
+```bash
+solara run robot_mission_9/run.py
+```
+Cela va lancer un serveur web sur le port 8080, vous pouvez ensuite visualiser la simulation en vous rendant à l'adresse suivante:
+
+Pour génerer les graphiques de comparaison entre les stratégies, il faut executer le fichier run `robot_mission_9/run_without_solara.ipynb` qui lance le modèle 20 fois avec des random_seed différentes et qui génère les graphique moyen de performance.
+
+Pour changer les stratégies il faut modifier la méthode déliberate dans la classe Robot dans le fichier `robot_mission_9/agents.py`.
+
 
 ## Strategies et résultats
 
